@@ -159,7 +159,7 @@ class NsmcProcessor(object):
         self.args = args
 
     def get_labels(self):
-        return ["0", "1"]
+        return ["0", "1", "2"]
 
     @classmethod
     def _read_file(cls, input_file):
