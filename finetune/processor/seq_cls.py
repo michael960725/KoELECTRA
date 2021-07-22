@@ -174,6 +174,7 @@ class NsmcProcessor(object):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, line) in enumerate(lines[1:]):
+            print(line)
             line = line.split("\t")
             guid = "%s-%s" % (set_type, i)
             text_a = line[1]
