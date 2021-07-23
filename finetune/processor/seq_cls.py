@@ -66,6 +66,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
 
     def label_from_example(example):
         if output_mode == "classification":
+            print(example)
             return label_map[example.label]
         elif output_mode == "regression":
             return float(example.label)
