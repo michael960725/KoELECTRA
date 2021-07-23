@@ -5,6 +5,7 @@ import os
 import glob
 
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from fastprogress.fastprogress import master_bar, progress_bar
@@ -187,10 +188,12 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     eval_loss = eval_loss / nb_eval_steps
     if output_modes[args.task] == "classification":
         preds = np.argmax(preds, axis=1)
-        print(preds)
     elif output_modes[args.task] == "regression":
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
+    numpy_data = np.array(out_label_ids, preds)
+    df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
+    print(df)
     results.update(result)
 
     output_dir = os.path.join(args.output_dir, mode)
