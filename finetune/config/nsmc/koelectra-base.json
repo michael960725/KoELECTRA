@@ -24,9 +24,9 @@
   "model_name_or_path": "monologg/koelectra-base-discriminator",
   "output_dir": "koelectra-base-nsmc-ckpt",
   "seed": 42,
-  "train_batch_size": 64,
+  "train_batch_size": 32,
   "eval_batch_size": 64,
-  "logging_steps": 128,
-  "save_steps": 128,
+  "logging_steps": 100,
+  "save_steps": 100,
   "learning_rate": 5e-5
 }
