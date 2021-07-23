@@ -111,7 +111,7 @@ def train(args,
                 args.model_name_or_path,
                 do_lower_case=args.do_lower_case
             )
-            print(tokenizer.decode(logits.detach().cpu().numpy()))
+            print(tokenizer.decode(logits.detach().cpu().numpy()[0]))
 
 
             if (step + 1) % args.gradient_accumulation_steps == 0 or (
