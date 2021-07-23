@@ -215,6 +215,13 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
 
     # numpy_data = np.array(out_label_ids, preds)
     # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
+    out_ids = inputs["input_ids"].detach().cpu().numpy()
+    tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+        args.model_name_or_path,
+        do_lower_case=args.do_lower_case
+    )
+    for i in range(len(out_label_ids)):
+        print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
     print(type(out_label_ids), type(preds))
     print(out_label_ids, preds)
 
