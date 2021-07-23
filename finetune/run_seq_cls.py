@@ -94,7 +94,7 @@ def train(args,
             loss = outputs[0]
 
 
-            print(args.gradient_accumulation_stepts)
+            print(args.gradient_accumulation_steps)
 
 
             if args.gradient_accumulation_steps > 1:
