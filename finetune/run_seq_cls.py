@@ -96,14 +96,19 @@ def train(args,
 
 
 
+
+
             if args.gradient_accumulation_steps > 1:
                 loss = loss / args.gradient_accumulation_steps
 
             loss.backward()
             tr_loss += loss.item()
 
-            print(batch)
-            print("loss: " + str(tr_loss/global_step))
+
+
+            logits = outputs[1]
+            print(logits.detach().cpu().numpy())
+
 
             if (step + 1) % args.gradient_accumulation_steps == 0 or (
                     len(train_dataloader) <= args.gradient_accumulation_steps
@@ -115,6 +120,8 @@ def train(args,
                 scheduler.step()
                 model.zero_grad()
                 global_step += 1
+
+                print("loss: " + str(tr_loss / global_step))
 
                 if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                     if args.evaluate_test_during_training:
@@ -174,7 +181,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
 
 
 
-        print(batch)
+
 
 
 
