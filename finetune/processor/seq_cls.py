@@ -64,7 +64,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
 
     label_map = {label: i for i, label in enumerate(label_list)}
 
-    print(label_list)
+    print(enumerate(label_list))
     for i, label in enumerate(label_list):
         print(i, label)
 
