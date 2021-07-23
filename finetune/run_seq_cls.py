@@ -106,7 +106,7 @@ def train(args,
 
 
 
-            logits = outputs[1]
+            logits = batch[0]
             print(logits.detach().cpu().numpy())
 
 
