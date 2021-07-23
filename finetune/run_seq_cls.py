@@ -191,9 +191,13 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     elif output_modes[args.task] == "regression":
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
+
+
     numpy_data = np.array(out_label_ids, preds)
     df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
     print(df)
+
+
     results.update(result)
 
     output_dir = os.path.join(args.output_dir, mode)
