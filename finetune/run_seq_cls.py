@@ -94,14 +94,16 @@ def train(args,
             loss = outputs[0]
 
 
-            print(args.gradient_accumulation_steps)
 
 
             if args.gradient_accumulation_steps > 1:
                 loss = loss / args.gradient_accumulation_steps
 
             loss.backward()
+
             tr_loss += loss.item()
+            print(tr_loss)
+
             if (step + 1) % args.gradient_accumulation_steps == 0 or (
                     len(train_dataloader) <= args.gradient_accumulation_steps
                     and (step + 1) == len(train_dataloader)
@@ -168,6 +170,12 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     for batch in progress_bar(eval_dataloader):
         model.eval()
         batch = tuple(t.to(args.device) for t in batch)
+
+
+
+        print(batch)
+
+
 
         with torch.no_grad():
             inputs = {
