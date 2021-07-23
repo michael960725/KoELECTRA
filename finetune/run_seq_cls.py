@@ -100,9 +100,10 @@ def train(args,
                 loss = loss / args.gradient_accumulation_steps
 
             loss.backward()
-
             tr_loss += loss.item()
-            print(tr_loss)
+
+            print(batch)
+            print("loss: " + str(tr_loss/global_step))
 
             if (step + 1) % args.gradient_accumulation_steps == 0 or (
                     len(train_dataloader) <= args.gradient_accumulation_steps
