@@ -421,7 +421,7 @@ seq_cls_processors = {
     "hate-speech": HateSpeechProcessor,
 }
 
-seq_cls_tasks_num_labels = {"kornli": 3, "nsmc": 3, "paws": 2, "korsts": 1, "question-pair": 2, "hate-speech": 3}
+seq_cls_tasks_num_labels = {"kornli": 3, "nsmc": 35, "paws": 2, "korsts": 1, "question-pair": 2, "hate-speech": 3}
 
 seq_cls_output_modes = {
     "kornli": "classification",
