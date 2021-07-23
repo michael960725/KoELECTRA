@@ -93,6 +93,10 @@ def train(args,
 
             loss = outputs[0]
 
+
+            print(args.gradient_accumulation_stepts)
+
+
             if args.gradient_accumulation_steps > 1:
                 loss = loss / args.gradient_accumulation_steps
 
