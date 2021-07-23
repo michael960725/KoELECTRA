@@ -187,6 +187,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     eval_loss = eval_loss / nb_eval_steps
     if output_modes[args.task] == "classification":
         preds = np.argmax(preds, axis=1)
+        print(preds)
     elif output_modes[args.task] == "regression":
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
