@@ -193,9 +193,10 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     result = compute_metrics(args.task, out_label_ids, preds)
 
 
-    numpy_data = np.array(out_label_ids, preds)
-    df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
-    print(df)
+    # numpy_data = np.array(out_label_ids, preds)
+    # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
+    print(type(out_label_ids), type(preds))
+    print(out_label_ids, preds)
 
 
     results.update(result)
