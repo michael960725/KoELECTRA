@@ -114,23 +114,22 @@ def train(args,
                 tr_loss += loss.item()
 
 
-                logits = batch[0]
-                tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                    args.model_name_or_path,
-                    do_lower_case=args.do_lower_case
-                )
+                # logits = batch[0]
+                # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+                #     args.model_name_or_path,
+                #     do_lower_case=args.do_lower_case
+                # )
 
 
-                for i in logits.detach().cpu().numpy():
-                    # print(i)
-                    review_list = list(i)
-                    while 0 in review_list:
-                        review_list.remove(0)
-                    del review_list[0]
-                    del review_list[-1]
-                    review_list = np.asarray(review_list)
-                    print(tokenizer.decode(review_list))
-                # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
+                # for i in logits.detach().cpu().numpy():
+                #     # print(i)
+                #     review_list = list(i)
+                #     while 0 in review_list:
+                #         review_list.remove(0)
+                #     del review_list[0]
+                #     del review_list[-1]
+                #     review_list = np.asarray(review_list)
+                #     print(tokenizer.decode(review_list))
 
 
                 if (step + 1) % args.gradient_accumulation_steps == 0 or (
