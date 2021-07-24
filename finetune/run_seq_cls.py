@@ -111,10 +111,11 @@ def train(args,
                 args.model_name_or_path,
                 do_lower_case=args.do_lower_case
             )
-            for i in logits:
+
+
+            for i in logits.detach().cpu().numpy():
                 while '[PAD]' in i:
                     i.remove('[PAD]')
-            for i in logits.detach().cpu().numpy():
                 print(tokenizer.decode(i))
             # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
 
