@@ -162,7 +162,7 @@ def train(args,
                         torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                         torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                         logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-                    print(4)
+                print(4)
             if args.max_steps > 0 and global_step > args.max_steps:
                 break
 
