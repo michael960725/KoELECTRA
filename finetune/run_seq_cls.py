@@ -86,7 +86,10 @@ def train(args,
     #     sleep(0.1)
     for epoch in tqdm(mb):
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
+
+        # 내가 수정한 부분
         with tqdm(total=t_total/args.num_train_epochs) as pbar:
+        #
             for step, batch in enumerate(epoch_iterator):
                 #
                 # print(len(batch))
@@ -143,9 +146,11 @@ def train(args,
                     model.zero_grad()
                     global_step += 1
 
+                    # 내가 수정한 부분
                     print("loss: " + str(tr_loss / global_step))
                     sleep(0.1)
                     pbar.update(1)
+                    #
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                         if args.evaluate_test_during_training:
@@ -222,7 +227,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
 
-
+        # 내가 수정한 부분
         out_ids = inputs["input_ids"].detach().cpu().numpy()
         tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
             args.model_name_or_path,
@@ -236,11 +241,12 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             del review_list[0]
             del review_list[-1]
             review_list = np.asarray(review_list)
-            print(tokenizer.decode(review_list), out_label_ids[i], preds[i])
+            print(tokenizer.decode(review_list), out_label_ids[i], np.argmax(preds[i]))
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
         print(out_label_ids, preds)
+        #
 
     eval_loss = eval_loss / nb_eval_steps
     if output_modes[args.task] == "classification":
