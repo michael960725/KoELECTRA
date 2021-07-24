@@ -80,6 +80,7 @@ def train(args,
     for epoch in mb:
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         for step, batch in enumerate(epoch_iterator):
+            print(1)
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
             inputs = {
@@ -90,7 +91,7 @@ def train(args,
             if args.model_type not in ["distilkobert", "xlm-roberta"]:
                 inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
             outputs = model(**inputs)
-
+            print(2)
             loss = outputs[0]
 
 
@@ -104,7 +105,7 @@ def train(args,
             loss.backward()
             tr_loss += loss.item()
 
-
+            print(3)
 
             logits = batch[0]
             tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
@@ -156,7 +157,7 @@ def train(args,
 
                     torch.save(args, os.path.join(output_dir, "training_args.bin"))
                     logger.info("Saving model checkpoint to {}".format(output_dir))
-
+                    print(4)
                     if args.save_optimizer:
                         torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                         torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
