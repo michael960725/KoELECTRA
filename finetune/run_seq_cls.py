@@ -282,7 +282,7 @@ def main(cli_args):
     with open(os.path.join(cli_args.config_dir, cli_args.task, cli_args.config_file)) as f:
         args = AttrDict(json.load(f))
     logger.info("Training/evaluation parameters {}".format(args))
-
+    print(args.task)
     args.output_dir = os.path.join(args.ckpt_dir, args.output_dir)
 
     init_logger()

@@ -165,7 +165,7 @@ seq_cls_processors = {
 seq_cls_tasks_num_labels = {"SCIC": 35}
 
 seq_cls_output_modes = {
-    "SCIC": "classification",
+    "nsmc": "classification",
 }
 
 
