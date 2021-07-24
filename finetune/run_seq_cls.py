@@ -114,6 +114,7 @@ def train(args,
 
 
             for i in logits.detach().cpu().numpy():
+                print(i)
                 while '[PAD]' in i:
                     i.remove('[PAD]')
                 print(tokenizer.decode(i))
