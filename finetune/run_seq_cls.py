@@ -157,12 +157,12 @@ def train(args,
 
                     torch.save(args, os.path.join(output_dir, "training_args.bin"))
                     logger.info("Saving model checkpoint to {}".format(output_dir))
-                print(4)
+
                     if args.save_optimizer:
                         torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                         torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                         logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-
+                    print(4)
             if args.max_steps > 0 and global_step > args.max_steps:
                 break
 
