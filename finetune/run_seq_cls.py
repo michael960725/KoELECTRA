@@ -202,6 +202,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     nb_eval_steps = 0
     preds = None
     out_label_ids = None
+    out_input_ids = None
 
     for batch in progress_bar(eval_dataloader):
         model.eval()
@@ -215,12 +216,12 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             }
 
             #내가 쓴 곳
-            tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                args.model_name_or_path,
-                do_lower_case=args.do_lower_case
-            )
-            for i in range(len(inputs)):
-                print(tokenizer.decode(inputs['input_ids'][i]), inputs['labels'])
+            # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+            #     args.model_name_or_path,
+            #     do_lower_case=args.do_lower_case
+            # )
+            # for i in range(len(inputs)):
+            #     print(tokenizer.decode(inputs['input_ids'][i]), inputs['labels'])
 
 
             if args.model_type not in ["distilkobert", "xlm-roberta"]:
@@ -231,27 +232,29 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             eval_loss += tmp_eval_loss.mean().item()
         nb_eval_steps += 1
         if preds is None:
+            out_input_ids = inputs['input_ids'].detach().cpu().numpy()
             preds = logits.detach().cpu().numpy()
             out_label_ids = inputs["labels"].detach().cpu().numpy()
         else:
+            out_input_ids = np.append(out_input_ids, inputs['input_ids'].detach().cpu().numpy(), axis=0)
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
 
         # 내가 수정한 부분
-        out_ids = inputs["input_ids"].detach().cpu().numpy()
-        tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-            args.model_name_or_path,
-            do_lower_case=args.do_lower_case
-        )
 
-        for i in range(len(out_ids)):
-            review_list = list(out_ids[i])
-            while 0 in review_list:
-                review_list.remove(0)
-            del review_list[0]
-            del review_list[-1]
-            review_list = np.asarray(review_list)
-            print(tokenizer.decode(review_list), out_label_ids[i], np.argmax(preds[i]))
+    tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+        args.model_name_or_path,
+        do_lower_case=args.do_lower_case
+    )
+
+    for i in range(len(out_input_ids)):
+        review_list = list(out_input_ids[i])
+        while 0 in review_list:
+            review_list.remove(0)
+        del review_list[0]
+        del review_list[-1]
+        review_list = np.asarray(review_list)
+        print(tokenizer.decode(review_list), out_label_ids[i], np.argmax(preds[i]))
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
