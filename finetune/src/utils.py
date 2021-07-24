@@ -155,19 +155,7 @@ def show_ner_report(labels, preds):
 
 def compute_metrics(task_name, labels, preds):
     assert len(preds) == len(labels)
-    if task_name == "kornli":
+    if task_name == "SCIC":
         return acc_score(labels, preds)
-    elif task_name == "nsmc":
-        return acc_score(labels, preds)
-    elif task_name == "paws":
-        return acc_score(labels, preds)
-    elif task_name == "korsts":
-        return pearson_and_spearman(labels, preds)
-    elif task_name == "question-pair":
-        return acc_score(labels, preds)
-    elif task_name == "naver-ner":
-        return f1_pre_rec(labels, preds, is_ner=True)
-    elif task_name == "hate-speech":
-        return f1_pre_rec(labels, preds, is_ner=False)
     else:
         raise KeyError(task_name)
