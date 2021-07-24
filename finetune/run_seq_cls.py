@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from fastprogress.fastprogress import master_bar, progress_bar
 from attrdict import AttrDict
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from time import sleep
 
 from transformers import (
@@ -88,9 +88,8 @@ def train(args,
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         with tqdm(total=args.train_batch_size) as pbar:
             for step, batch in enumerate(epoch_iterator):
-                sleep(0.1)
-                pbar.update(1)
-                print(len(batch))
+                #
+                # print(len(batch))
                 model.train()
                 batch = tuple(t.to(args.device) for t in batch)
                 inputs = {
@@ -146,6 +145,8 @@ def train(args,
                     global_step += 1
 
                     print("loss: " + str(tr_loss / global_step))
+                    sleep(0.1)
+                    pbar.update(1)
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                         if args.evaluate_test_during_training:
