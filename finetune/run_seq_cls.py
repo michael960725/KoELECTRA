@@ -115,13 +115,14 @@ def train(args,
 
             for i in logits.detach().cpu().numpy():
                 print(i)
-                while '0' in i:
-                    print('yes')
-                    i.remove('0')
+                review_list = list(i)
                 while 0 in i:
                     print('yes')
-                    i. remove(0)
-                print(tokenizer.decode(i))
+                    review_list.remove(0)
+                del review_list[0]
+                del review_list[-1]
+                review_list = np.asarray(review_list)
+                print(tokenizer.decode(review_list))
             # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
 
 
