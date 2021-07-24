@@ -116,7 +116,7 @@ def train(args,
                 loss.backward()
                 tr_loss += loss.item()
 
-
+                # 내가 추가한 부분
                 logits = batch[0]
                 tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
                     args.model_name_or_path,
@@ -133,7 +133,7 @@ def train(args,
                     del review_list[-1]
                     review_list = np.asarray(review_list)
                     print(tokenizer.decode(review_list), batch[3][i])
-
+                ##
 
                 if (step + 1) % args.gradient_accumulation_steps == 0 or (
                         len(train_dataloader) <= args.gradient_accumulation_steps
@@ -213,6 +213,16 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
                 "attention_mask": batch[1],
                 "labels": batch[3]
             }
+
+            #내가 쓴 곳
+            tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+                args.model_name_or_path,
+                do_lower_case=args.do_lower_case
+            )
+            for i in range(len(inputs)):
+                print(tokenizer.decode(inputs['input_ids'][i]), inputs['labels'])
+
+
             if args.model_type not in ["distilkobert", "xlm-roberta"]:
                 inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
             outputs = model(**inputs)
