@@ -86,7 +86,7 @@ def train(args,
     #     sleep(0.1)
     for epoch in tqdm(mb):
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
-        with tqdm(total=args.train_batch_size) as pbar:
+        with tqdm(total=t_total/args.num_train_epochs) as pbar:
             for step, batch in enumerate(epoch_iterator):
                 #
                 # print(len(batch))
@@ -202,12 +202,6 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         model.eval()
         batch = tuple(t.to(args.device) for t in batch)
 
-
-
-
-
-
-
         with torch.no_grad():
             inputs = {
                 "input_ids": batch[0],
@@ -228,6 +222,26 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
 
+
+        out_ids = inputs["input_ids"].detach().cpu().numpy()
+        tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+            args.model_name_or_path,
+            do_lower_case=args.do_lower_case
+        )
+
+        for i in range(len(out_ids)):
+            review_list = list(out_ids[i])
+            while 0 in review_list:
+                review_list.remove(0)
+            del review_list[0]
+            del review_list[-1]
+            review_list = np.asarray(review_list)
+            print(tokenizer.decode(review_list), out_label_ids[i], preds[i])
+        # for i in range(len(out_label_ids)):
+        #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
+        # print(type(out_label_ids), type(preds))
+        print(out_label_ids, preds)
+
     eval_loss = eval_loss / nb_eval_steps
     if output_modes[args.task] == "classification":
         preds = np.argmax(preds, axis=1)
@@ -238,26 +252,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
 
     # numpy_data = np.array(out_label_ids, preds)
     # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
-    out_ids = inputs["input_ids"].detach().cpu().numpy()
-    tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-        args.model_name_or_path,
-        do_lower_case=args.do_lower_case
-    )
 
-    for i in range(len(out_ids)):
-        review_list = list(out_ids[i])
-        while 0 in review_list:
-            review_list.remove(0)
-        del review_list[0]
-        del review_list[-1]
-        review_list = np.asarray(review_list)
-        print(tokenizer.decode(review_list))
-        print(out_label_ids[i])
-        print(preds[i])
-    # for i in range(len(out_label_ids)):
-    #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
-    # print(type(out_label_ids), type(preds))
-    print(out_label_ids, preds)
 
 
     results.update(result)
