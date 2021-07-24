@@ -79,11 +79,13 @@ def train(args,
 
     model.zero_grad()
     mb = master_bar(range(int(args.num_train_epochs)))
-    for epoch in tqdm(range(int(args.num_train_epochs))):
+    # for epoch in tqdm(range(int(args.num_train_epochs))):
+    #     sleep(0.1)
+    for epoch in tqdm(mb):
         sleep(0.1)
-    # for epoch in mb:
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         for step, batch in enumerate(epoch_iterator):
+
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
             inputs = {
@@ -167,7 +169,7 @@ def train(args,
             if args.max_steps > 0 and global_step > args.max_steps:
                 break
 
-        # mb.write("Epoch {} done".format(epoch + 1))
+        mb.write("Epoch {} done".format(epoch + 1))
 
         if args.max_steps > 0 and global_step > args.max_steps:
             break
