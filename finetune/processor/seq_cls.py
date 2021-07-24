@@ -159,7 +159,7 @@ class NsmcProcessor(object):
         )
 
 seq_cls_processors = {
-    "SCIC": NsmcProcessor,
+    "nsmc": NsmcProcessor,
 }
 
 seq_cls_tasks_num_labels = {"SCIC": 35}
