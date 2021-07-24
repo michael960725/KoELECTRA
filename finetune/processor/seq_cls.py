@@ -108,7 +108,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
 
 
 
-class NsmcProcessor(object):
+class SCICProcessor(object):
     """Processor for the NSMC data set """
 
     def __init__(self, args):
@@ -159,13 +159,13 @@ class NsmcProcessor(object):
         )
 
 seq_cls_processors = {
-    "nsmc": NsmcProcessor,
+    "SCIC": SCICProcessor
 }
 
 seq_cls_tasks_num_labels = {"SCIC": 35}
 
 seq_cls_output_modes = {
-    "nsmc": "classification",
+    "SCIC": "classification"
 }
 
 
