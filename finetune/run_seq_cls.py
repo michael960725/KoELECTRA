@@ -43,11 +43,13 @@ def train(args,
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     if args.max_steps > 0:
         t_total = args.max_steps
+        print()
         print(t_total, len(train_dataloader), args.gradient_accumulation_steps)
+        print()
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
-
+        print('max steps: '+ str(t_total), 'length of train data: '+str(len(train_dataloader)), args.gradient_accumulation_steps)
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
@@ -86,6 +88,7 @@ def train(args,
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         with tqdm(total=args.train_batch_size) as pbar:
             for step, batch in enumerate(epoch_iterator):
+                print(len(batch))
                 model.train()
                 batch = tuple(t.to(args.device) for t in batch)
                 inputs = {
@@ -96,7 +99,6 @@ def train(args,
                 if args.model_type not in ["distilkobert", "xlm-roberta"]:
                     inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
                 outputs = model(**inputs)
-                print(2)
                 loss = outputs[0]
 
 
@@ -240,9 +242,20 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         args.model_name_or_path,
         do_lower_case=args.do_lower_case
     )
-    for i in range(len(out_label_ids)):
-        print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
-    print(type(out_label_ids), type(preds))
+
+    for i in range(len(out_ids)):
+        review_list = list(out_ids[i])
+        while 0 in review_list:
+            review_list.remove(0)
+        del review_list[0]
+        del review_list[-1]
+        review_list = np.asarray(review_list)
+        print(tokenizer.decode(review_list))
+        print(out_label_ids[i])
+        print(preds[i])
+    # for i in range(len(out_label_ids)):
+    #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
+    # print(type(out_label_ids), type(preds))
     print(out_label_ids, preds)
 
 
