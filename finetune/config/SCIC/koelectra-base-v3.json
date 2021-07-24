@@ -2,9 +2,9 @@
   "task": "SCIC",
   "data_dir": "data",
   "ckpt_dir": "ckpt",
-  "train_file": "korean_train.txt",
+  "train_file": "SCIC_train.txt",
   "dev_file": "",
-  "test_file": "korean_test.txt",
+  "test_file": "SCIC_test.txt",
   "evaluate_test_during_training": true,
   "eval_all_checkpoints": true,
   "save_optimizer": false,
@@ -26,7 +26,7 @@
   "seed": 42,
   "train_batch_size": 32,
   "eval_batch_size": 64,
-  "logging_steps": 100,
-  "save_steps": 100,
+  "logging_steps": 64,
+  "save_steps": 64,
   "learning_rate": 5e-5
 }

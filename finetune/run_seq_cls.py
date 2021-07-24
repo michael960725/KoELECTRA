@@ -105,11 +105,6 @@ def train(args,
                 outputs = model(**inputs)
                 loss = outputs[0]
 
-
-
-
-
-
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
 
@@ -117,22 +112,22 @@ def train(args,
                 tr_loss += loss.item()
 
                 # 내가 추가한 부분
-                logits = batch[0]
-                tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                    args.model_name_or_path,
-                    do_lower_case=args.do_lower_case
-                )
-
-                temp = logits.detach().cpu().numpy()
-                for i in range(len(temp)):
-                    # print(i)
-                    review_list = list(temp[i])
-                    while 0 in review_list:
-                        review_list.remove(0)
-                    del review_list[0]
-                    del review_list[-1]
-                    review_list = np.asarray(review_list)
-                    print(tokenizer.decode(review_list), batch[3][i])
+                # logits = batch[0]
+                # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+                #     args.model_name_or_path,
+                #     do_lower_case=args.do_lower_case
+                # )
+                #
+                # temp = logits.detach().cpu().numpy()
+                # for i in range(len(temp)):
+                #     # print(i)
+                #     review_list = list(temp[i])
+                #     while 0 in review_list:
+                #         review_list.remove(0)
+                #     del review_list[0]
+                #     del review_list[-1]
+                #     review_list = np.asarray(review_list)
+                #     print(tokenizer.decode(review_list), batch[3][i])
                 ##
 
                 if (step + 1) % args.gradient_accumulation_steps == 0 or (
@@ -295,7 +290,6 @@ def main(cli_args):
     with open(os.path.join(cli_args.config_dir, cli_args.task, cli_args.config_file)) as f:
         args = AttrDict(json.load(f))
     logger.info("Training/evaluation parameters {}".format(args))
-    print(args.task)
     args.output_dir = os.path.join(args.ckpt_dir, args.output_dir)
 
     init_logger()
