@@ -1,5 +1,5 @@
 {
-  "task": "nsmc",
+  "task": "SCIC",
   "data_dir": "data",
   "ckpt_dir": "ckpt",
   "train_file": "SCIC_train.txt",
