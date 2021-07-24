@@ -43,6 +43,7 @@ def train(args,
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     if args.max_steps > 0:
         t_total = args.max_steps
+        print(t_total, len(train_dataloader), args.gradient_accumulation_steps)
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
@@ -82,93 +83,94 @@ def train(args,
     # for epoch in tqdm(range(int(args.num_train_epochs))):
     #     sleep(0.1)
     for epoch in tqdm(mb):
-        print(epoch)
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
-        for step, batch in enumerate(epoch_iterator):
-            sleep(0.003125)
-            model.train()
-            batch = tuple(t.to(args.device) for t in batch)
-            inputs = {
-                "input_ids": batch[0],
-                "attention_mask": batch[1],
-                "labels": batch[3]
-            }
-            if args.model_type not in ["distilkobert", "xlm-roberta"]:
-                inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
-            outputs = model(**inputs)
-            print(2)
-            loss = outputs[0]
+        with tqdm(total=args.train_batch_size) as pbar:
+            for step, batch in enumerate(epoch_iterator):
+                sleep(0.003125)
+                model.train()
+                batch = tuple(t.to(args.device) for t in batch)
+                inputs = {
+                    "input_ids": batch[0],
+                    "attention_mask": batch[1],
+                    "labels": batch[3]
+                }
+                if args.model_type not in ["distilkobert", "xlm-roberta"]:
+                    inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
+                outputs = model(**inputs)
+                print(2)
+                loss = outputs[0]
 
 
 
 
 
 
-            if args.gradient_accumulation_steps > 1:
-                loss = loss / args.gradient_accumulation_steps
+                if args.gradient_accumulation_steps > 1:
+                    loss = loss / args.gradient_accumulation_steps
 
-            loss.backward()
-            tr_loss += loss.item()
-
-
-            logits = batch[0]
-            tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                args.model_name_or_path,
-                do_lower_case=args.do_lower_case
-            )
+                loss.backward()
+                tr_loss += loss.item()
 
 
-            for i in logits.detach().cpu().numpy():
-                # print(i)
-                review_list = list(i)
-                while 0 in review_list:
-                    review_list.remove(0)
-                del review_list[0]
-                del review_list[-1]
-                review_list = np.asarray(review_list)
-                print(tokenizer.decode(review_list))
-            # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
+                logits = batch[0]
+                tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+                    args.model_name_or_path,
+                    do_lower_case=args.do_lower_case
+                )
 
 
-            if (step + 1) % args.gradient_accumulation_steps == 0 or (
-                    len(train_dataloader) <= args.gradient_accumulation_steps
-                    and (step + 1) == len(train_dataloader)
-            ):
-                torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+                for i in logits.detach().cpu().numpy():
+                    # print(i)
+                    review_list = list(i)
+                    while 0 in review_list:
+                        review_list.remove(0)
+                    del review_list[0]
+                    del review_list[-1]
+                    review_list = np.asarray(review_list)
+                    print(tokenizer.decode(review_list))
+                # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
 
-                optimizer.step()
-                scheduler.step()
-                model.zero_grad()
-                global_step += 1
 
-                print("loss: " + str(tr_loss / global_step))
+                if (step + 1) % args.gradient_accumulation_steps == 0 or (
+                        len(train_dataloader) <= args.gradient_accumulation_steps
+                        and (step + 1) == len(train_dataloader)
+                ):
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
-                if args.logging_steps > 0 and global_step % args.logging_steps == 0:
-                    if args.evaluate_test_during_training:
-                        evaluate(args, model, test_dataset, "test", global_step)
-                    else:
-                        evaluate(args, model, dev_dataset, "dev", global_step)
+                    optimizer.step()
+                    scheduler.step()
+                    model.zero_grad()
+                    global_step += 1
 
-                if args.save_steps > 0 and global_step % args.save_steps == 0:
-                    # Save model checkpoint
-                    output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
-                    if not os.path.exists(output_dir):
-                        os.makedirs(output_dir)
-                    model_to_save = (
-                        model.module if hasattr(model, "module") else model
-                    )
-                    model_to_save.save_pretrained(output_dir)
+                    print("loss: " + str(tr_loss / global_step))
 
-                    torch.save(args, os.path.join(output_dir, "training_args.bin"))
-                    logger.info("Saving model checkpoint to {}".format(output_dir))
+                    if args.logging_steps > 0 and global_step % args.logging_steps == 0:
+                        if args.evaluate_test_during_training:
+                            evaluate(args, model, test_dataset, "test", global_step)
+                        else:
+                            evaluate(args, model, dev_dataset, "dev", global_step)
 
-                    if args.save_optimizer:
-                        torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
-                        torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-                        logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-            if args.max_steps > 0 and global_step > args.max_steps:
-                break
+                    if args.save_steps > 0 and global_step % args.save_steps == 0:
+                        # Save model checkpoint
+                        output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
+                        if not os.path.exists(output_dir):
+                            os.makedirs(output_dir)
+                        model_to_save = (
+                            model.module if hasattr(model, "module") else model
+                        )
+                        model_to_save.save_pretrained(output_dir)
 
+                        torch.save(args, os.path.join(output_dir, "training_args.bin"))
+                        logger.info("Saving model checkpoint to {}".format(output_dir))
+
+                        if args.save_optimizer:
+                            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+                            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+                            logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
+                if args.max_steps > 0 and global_step > args.max_steps:
+                    break
+            sleep(0.1)
+            pbar.update(1)
         mb.write("Epoch {} done".format(epoch + 1))
 
         if args.max_steps > 0 and global_step > args.max_steps:
