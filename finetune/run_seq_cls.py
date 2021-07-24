@@ -10,6 +10,8 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from fastprogress.fastprogress import master_bar, progress_bar
 from attrdict import AttrDict
+from tqdm import tqdm
+from time import sleep
 
 from transformers import (
     AdamW,
@@ -77,12 +79,11 @@ def train(args,
 
     model.zero_grad()
     mb = master_bar(range(int(args.num_train_epochs)))
-    for epoch in mb:
+    for epoch in tqdm(range(int(args.num_train_epochs))):
+        sleep(0.1)
+    # for epoch in mb:
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         for step, batch in enumerate(epoch_iterator):
-            print(batch)
-            print(epoch_iterator)
-            print(1)
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
             inputs = {
@@ -107,7 +108,6 @@ def train(args,
             loss.backward()
             tr_loss += loss.item()
 
-            print(3)
 
             logits = batch[0]
             tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
@@ -164,11 +164,10 @@ def train(args,
                         torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                         torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                         logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-                print(4)
             if args.max_steps > 0 and global_step > args.max_steps:
                 break
 
-        mb.write("Epoch {} done".format(epoch + 1))
+        # mb.write("Epoch {} done".format(epoch + 1))
 
         if args.max_steps > 0 and global_step > args.max_steps:
             break
