@@ -86,7 +86,6 @@ def train(args,
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
         with tqdm(total=args.train_batch_size) as pbar:
             for step, batch in enumerate(epoch_iterator):
-                sleep(0.003125)
                 model.train()
                 batch = tuple(t.to(args.device) for t in batch)
                 inputs = {
