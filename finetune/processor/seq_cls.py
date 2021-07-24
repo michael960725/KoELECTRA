@@ -65,8 +65,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
     label_map = {label: i for i, label in enumerate(label_list)}
 
     # for i, label in enumerate(label_list):
-        # print(i, label)
-
+    # print(i, label)
 
     def label_from_example(example):
         if output_mode == "classification":
@@ -106,8 +105,6 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
     return features
 
 
-
-
 class SCICProcessor(object):
     """Processor for the NSMC data set """
 
@@ -115,8 +112,11 @@ class SCICProcessor(object):
         self.args = args
 
     def get_labels(self):
-        return ['-1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-                '13', '14', '15', '16', '17', '18', '19', '20']
+        return ['None', '상담원', '상담시스템', '고객서비스', '혜택', '할부금융상품', '커뮤니티서비스',
+                '카드이용/결제', '카드상품', '청구입금', '심사/한도', '생활편의서비스', '상담/채널', '리스렌탈상품',
+                '라이프서비스', '금융상품', '고객정보관리', '가맹점매출/승인', '가맹점대금', '가맹점계약', '삼성카드', '기타']
+        # return ['-1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
+        #         '13', '14', '15', '16', '17', '18', '19', '20']
 
     @classmethod
     def _read_file(cls, input_file):
@@ -158,11 +158,12 @@ class SCICProcessor(object):
             self._read_file(os.path.join(self.args.data_dir, self.args.task, file_to_read)), mode
         )
 
+
 seq_cls_processors = {
     "SCIC": SCICProcessor
 }
 
-seq_cls_tasks_num_labels = {"SCIC": 35}
+seq_cls_tasks_num_labels = {"SCIC": 21}
 
 seq_cls_output_modes = {
     "SCIC": "classification"
