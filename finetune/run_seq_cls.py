@@ -78,10 +78,10 @@ def train(args,
     model.zero_grad()
     mb = master_bar(range(int(args.num_train_epochs)))
     for epoch in mb:
-        print(5)
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
-        print(6)
         for step, batch in enumerate(epoch_iterator):
+            print(batch)
+            print(epoch_iterator)
             print(1)
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
