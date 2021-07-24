@@ -117,7 +117,6 @@ def train(args,
                 print(i)
                 review_list = list(i)
                 while 0 in review_list:
-                    print('yes')
                     review_list.remove(0)
                 del review_list[0]
                 del review_list[-1]
