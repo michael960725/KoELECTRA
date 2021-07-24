@@ -114,7 +114,7 @@ def train(args,
 
 
             for i in logits.detach().cpu().numpy():
-                print(i)
+                # print(i)
                 review_list = list(i)
                 while 0 in review_list:
                     review_list.remove(0)
