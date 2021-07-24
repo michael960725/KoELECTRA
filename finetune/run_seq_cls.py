@@ -245,7 +245,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
-        print(out_label_ids, preds)
+        # print(out_label_ids, preds)
         #
 
     eval_loss = eval_loss / nb_eval_steps
