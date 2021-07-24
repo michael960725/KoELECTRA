@@ -10,6 +10,8 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from fastprogress.fastprogress import master_bar, progress_bar
 from attrdict import AttrDict
+from tqdm.auto import tqdm
+from time import sleep
 
 from transformers import (
     AdamW,
@@ -41,10 +43,13 @@ def train(args,
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     if args.max_steps > 0:
         t_total = args.max_steps
+        print()
+        print(t_total, len(train_dataloader), args.gradient_accumulation_steps)
+        print()
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
-
+        print('max steps: '+ str(t_total), 'length of train data: '+str(len(train_dataloader)), args.gradient_accumulation_steps)
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
@@ -77,88 +82,96 @@ def train(args,
 
     model.zero_grad()
     mb = master_bar(range(int(args.num_train_epochs)))
-    for epoch in mb:
+    # for epoch in tqdm(range(int(args.num_train_epochs))):
+    #     sleep(0.1)
+    for epoch in tqdm(mb):
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
-        for step, batch in enumerate(epoch_iterator):
-            model.train()
-            batch = tuple(t.to(args.device) for t in batch)
-            inputs = {
-                "input_ids": batch[0],
-                "attention_mask": batch[1],
-                "labels": batch[3]
-            }
-            if args.model_type not in ["distilkobert", "xlm-roberta"]:
-                inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
-            outputs = model(**inputs)
 
-            loss = outputs[0]
+        # 내가 수정한 부분
+        with tqdm(total=t_total/args.num_train_epochs) as pbar:
+        #
+            for step, batch in enumerate(epoch_iterator):
+                #
+                # print(len(batch))
+                model.train()
+                batch = tuple(t.to(args.device) for t in batch)
+                inputs = {
+                    "input_ids": batch[0],
+                    "attention_mask": batch[1],
+                    "labels": batch[3]
+                }
+                if args.model_type not in ["distilkobert", "xlm-roberta"]:
+                    inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
+                outputs = model(**inputs)
+                loss = outputs[0]
 
+                if args.gradient_accumulation_steps > 1:
+                    loss = loss / args.gradient_accumulation_steps
 
+                loss.backward()
+                tr_loss += loss.item()
 
+                # 내가 추가한 부분
+                # logits = batch[0]
+                # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+                #     args.model_name_or_path,
+                #     do_lower_case=args.do_lower_case
+                # )
+                #
+                # temp = logits.detach().cpu().numpy()
+                # for i in range(len(temp)):
+                #     # print(i)
+                #     review_list = list(temp[i])
+                #     while 0 in review_list:
+                #         review_list.remove(0)
+                #     del review_list[0]
+                #     del review_list[-1]
+                #     review_list = np.asarray(review_list)
+                #     print(tokenizer.decode(review_list), batch[3][i])
+                ##
 
+                if (step + 1) % args.gradient_accumulation_steps == 0 or (
+                        len(train_dataloader) <= args.gradient_accumulation_steps
+                        and (step + 1) == len(train_dataloader)
+                ):
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
+                    optimizer.step()
+                    scheduler.step()
+                    model.zero_grad()
+                    global_step += 1
 
-            if args.gradient_accumulation_steps > 1:
-                loss = loss / args.gradient_accumulation_steps
+                    # 내가 수정한 부분
+                    print("loss: " + str(tr_loss / global_step))
+                    sleep(0.1)
+                    pbar.update(1)
+                    #
 
-            loss.backward()
-            tr_loss += loss.item()
+                    if args.logging_steps > 0 and global_step % args.logging_steps == 0:
+                        if args.evaluate_test_during_training:
+                            evaluate(args, model, test_dataset, "test", global_step)
+                        else:
+                            evaluate(args, model, dev_dataset, "dev", global_step)
 
+                    if args.save_steps > 0 and global_step % args.save_steps == 0:
+                        # Save model checkpoint
+                        output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
+                        if not os.path.exists(output_dir):
+                            os.makedirs(output_dir)
+                        model_to_save = (
+                            model.module if hasattr(model, "module") else model
+                        )
+                        model_to_save.save_pretrained(output_dir)
 
+                        torch.save(args, os.path.join(output_dir, "training_args.bin"))
+                        logger.info("Saving model checkpoint to {}".format(output_dir))
 
-            logits = batch[0]
-            tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                args.model_name_or_path,
-                do_lower_case=args.do_lower_case
-            )
-
-
-            for i in logits.detach().cpu().numpy():
-                while '[PAD]' in i:
-                    i.remove('[PAD]')
-                print(tokenizer.decode(i))
-            # print(tokenizer.decode(x for x in logits.detach().cpu().numpy()))
-
-
-            if (step + 1) % args.gradient_accumulation_steps == 0 or (
-                    len(train_dataloader) <= args.gradient_accumulation_steps
-                    and (step + 1) == len(train_dataloader)
-            ):
-                torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
-
-                optimizer.step()
-                scheduler.step()
-                model.zero_grad()
-                global_step += 1
-
-                print("loss: " + str(tr_loss / global_step))
-
-                if args.logging_steps > 0 and global_step % args.logging_steps == 0:
-                    if args.evaluate_test_during_training:
-                        evaluate(args, model, test_dataset, "test", global_step)
-                    else:
-                        evaluate(args, model, dev_dataset, "dev", global_step)
-
-                if args.save_steps > 0 and global_step % args.save_steps == 0:
-                    # Save model checkpoint
-                    output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
-                    if not os.path.exists(output_dir):
-                        os.makedirs(output_dir)
-                    model_to_save = (
-                        model.module if hasattr(model, "module") else model
-                    )
-                    model_to_save.save_pretrained(output_dir)
-
-                    torch.save(args, os.path.join(output_dir, "training_args.bin"))
-                    logger.info("Saving model checkpoint to {}".format(output_dir))
-
-                    if args.save_optimizer:
-                        torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
-                        torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-                        logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-
-            if args.max_steps > 0 and global_step > args.max_steps:
-                break
+                        if args.save_optimizer:
+                            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+                            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+                            logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
+                if args.max_steps > 0 and global_step > args.max_steps:
+                    break
 
         mb.write("Epoch {} done".format(epoch + 1))
 
@@ -184,16 +197,11 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     nb_eval_steps = 0
     preds = None
     out_label_ids = None
+    out_input_ids = None
 
     for batch in progress_bar(eval_dataloader):
         model.eval()
         batch = tuple(t.to(args.device) for t in batch)
-
-
-
-
-
-
 
         with torch.no_grad():
             inputs = {
@@ -201,6 +209,16 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
                 "attention_mask": batch[1],
                 "labels": batch[3]
             }
+
+            #내가 쓴 곳
+            # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+            #     args.model_name_or_path,
+            #     do_lower_case=args.do_lower_case
+            # )
+            # for i in range(len(inputs)):
+            #     print(tokenizer.decode(inputs['input_ids'][i]), inputs['labels'])
+
+
             if args.model_type not in ["distilkobert", "xlm-roberta"]:
                 inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
             outputs = model(**inputs)
@@ -209,11 +227,34 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
             eval_loss += tmp_eval_loss.mean().item()
         nb_eval_steps += 1
         if preds is None:
+            out_input_ids = inputs['input_ids'].detach().cpu().numpy()
             preds = logits.detach().cpu().numpy()
             out_label_ids = inputs["labels"].detach().cpu().numpy()
         else:
+            out_input_ids = np.append(out_input_ids, inputs['input_ids'].detach().cpu().numpy(), axis=0)
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+
+        # 내가 수정한 부분
+
+    tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+        args.model_name_or_path,
+        do_lower_case=args.do_lower_case
+    )
+
+    for i in range(len(out_input_ids)):
+        review_list = list(out_input_ids[i])
+        while 0 in review_list:
+            review_list.remove(0)
+        del review_list[0]
+        del review_list[-1]
+        review_list = np.asarray(review_list)
+        print(tokenizer.decode(review_list), out_label_ids[i], np.argmax(preds[i]))
+        # for i in range(len(out_label_ids)):
+        #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
+        # print(type(out_label_ids), type(preds))
+        # print(out_label_ids, preds)
+        #
 
     eval_loss = eval_loss / nb_eval_steps
     if output_modes[args.task] == "classification":
@@ -225,15 +266,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
 
     # numpy_data = np.array(out_label_ids, preds)
     # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
-    out_ids = inputs["input_ids"].detach().cpu().numpy()
-    tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-        args.model_name_or_path,
-        do_lower_case=args.do_lower_case
-    )
-    for i in range(len(out_label_ids)):
-        print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
-    print(type(out_label_ids), type(preds))
-    print(out_label_ids, preds)
+
 
 
     results.update(result)
@@ -257,7 +290,6 @@ def main(cli_args):
     with open(os.path.join(cli_args.config_dir, cli_args.task, cli_args.config_file)) as f:
         args = AttrDict(json.load(f))
     logger.info("Training/evaluation parameters {}".format(args))
-
     args.output_dir = os.path.join(args.ckpt_dir, args.output_dir)
 
     init_logger()
