@@ -170,8 +170,8 @@ def train(args,
                             logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
                 if args.max_steps > 0 and global_step > args.max_steps:
                     break
-            sleep(0.1)
-            pbar.update(1)
+                sleep(0.1)
+                pbar.update(1)
         mb.write("Epoch {} done".format(epoch + 1))
 
         if args.max_steps > 0 and global_step > args.max_steps:
