@@ -144,7 +144,7 @@ def train(args,
                     # 내가 수정한 부분
                     print("loss: " + str(tr_loss / global_step))
                     sleep(0.1)
-                    pbar.update(1)
+                    pbar.update()
                     #
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
