@@ -42,7 +42,7 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    train_text = pd.read_csv('~\data\SCIC\SCIC_train.txt', sep='\t')
+    train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_train.txt', sep='\t')
     print(train_text)
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -285,13 +285,18 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     label_lst = list(label_dict.values())
     index = np.arange(len(label_lst))
     # print(index)
-    count_list, acc_list = [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
+    count_list, acc_list, acc_cnt = [0 for _ in range(len(label_dict))], \
+                                    [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
     count_labels = df_from_train.groupby('Label').Review.count()
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
     for i in range(len(df_from_train)):
         count_list[int(df_from_train['Label'][i])] = count_labels[i]
+    for j in range(len(out_label_ids)):
+        if out_label_ids[j] == preds[j]:
+            acc_list[out_label_ids[j]] += 1
+        acc_cnt[out_label_ids[j]] += 1
     print(count_list)
-    print(acc_labels)
+    print(acc_list)
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
     p1 = plt.bar(index, count_list,
