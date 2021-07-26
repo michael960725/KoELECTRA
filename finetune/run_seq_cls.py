@@ -4,13 +4,12 @@ import logging
 import os
 import glob
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 
 plt.rc('font', family='NanumGothic') # For Windows
 plt.rc('axes', unicode_minus=False)
 
-plt.plot([1, 2, 3, 4])
-plt.ylabel('제발좀')
-plt.show()
+
 
 import numpy as np
 import pandas as pd
@@ -302,12 +301,13 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     # print(len(list(out_label_ids)))
     for j in range(len(out_label_ids)):
         if out_label_ids[j] == np.argmax(preds, axis=1)[j]:
-            acc_list[out_label_ids[j]] += 1
+            acc_list[out_label_ids[j]] += 100
         acc_cnt[out_label_ids[j]] += 1
     acc_tot = np.divide(acc_list, acc_cnt)
     acc_tot[np.isnan(acc_tot)] = 0
     # print(count_list)
     # print(acc_tot)
+    plt.figure(figsize=(15, 8))
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
     p1 = plt.bar(index, count_list,
@@ -324,6 +324,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                  color='b',
                  alpha=alpha,
                  label='Accuracy')
+    plt.gca().yaxis.set_major_formatter(mticker.PercentFormatter())
     plt.ylabel('Accuracy by Labels', fontsize=12)
     plt.xlabel('Label', fontsize=12)
     plt.xticks(index, label_lst, fontsize=10)
