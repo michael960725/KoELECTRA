@@ -270,10 +270,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
         # print(review_list, label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
     df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
     df = pd.DataFrame(df_data)
-    print('df', df)
     df_train_data = {'Review': train_text['Review'], 'Label': train_text['Label']}
     df_from_train = pd.DataFrame(df_train_data)
-    print('from train', df_from_train)
     # Dodged Bar Chart (with same X coordinates side by side)
 
     bar_width = 0.35
@@ -285,6 +283,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                                     [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
     count_labels = df_from_train.groupby('Label').Review.count()
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
+    print('hey', df_from_train['Label'][5])
+    print(count_labels)
     for i in range(len(df_from_train['Label'])):
         count_list[int(df_from_train['Label'][i])] = count_labels[i]
     for j in range(len(out_label_ids)):
