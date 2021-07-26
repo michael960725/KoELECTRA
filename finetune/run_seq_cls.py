@@ -279,26 +279,26 @@ def evaluate(args, model, train_dataset, eval_dataset, mode, global_step=None):
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
     print(count_labels, acc_labels)
     plt.subplot(2, 1, 1)
-    plt.title('Dodged Bar Chart of Sum of Tips by Day & Sex', fontsize=20)
+    plt.title('Bar Chart of Labels Count and Accuracy', fontsize=20)
     p1 = plt.bar(index, count_labels,
                  bar_width,
                  color='b',
                  alpha=alpha,
-                 label='Male')
-    plt.ylabel('Sum of Tips', fontsize=18)
+                 label='Count')
+    plt.ylabel('Count of Labels', fontsize=18)
     plt.xticks([], [])
-    plt.legend((p1[0],), ('Male',), fontsize=15)
+    plt.legend((p1[0],), ('Count',), fontsize=15)
     plt.subplot(2, 1, 2)
     p2 = plt.bar(index + bar_width, acc_labels,
                  bar_width,
-                 color='r',
+                 color='b',
                  alpha=alpha,
-                 label='Female')
+                 label='Accuracy')
 
-    plt.ylabel('Count of Tips', fontsize=18)
-    plt.xlabel('Day', fontsize=18)
-    plt.xticks(index, label, fontsize=15)
-    plt.legend((p1[0], p2[0]), ('Male', 'Female'), fontsize=15)
+    plt.ylabel('Accuracy by Labels', fontsize=18)
+    plt.xlabel('Label', fontsize=18)
+    plt.xticks(index, label_lst, fontsize=15)
+    plt.legend((p2[0]), ('Accuracy',), fontsize=15)
     plt.show()
     print(df)
         # for i in range(len(out_label_ids)):
