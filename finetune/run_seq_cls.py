@@ -4,7 +4,10 @@ import logging
 import os
 import glob
 import matplotlib.pyplot as plt
-plt.rc('font', family='NanumBarunGothic')
+import matplotlib
+
+matplotlib.rcParams['axes.unicode_minus'] = False
+matplotlib.rcParams['font.family'] = "AppleGothic"
 
 import numpy as np
 import pandas as pd
@@ -148,7 +151,7 @@ def train(args,
                     global_step += 1
 
                     # 내가 수정한 부분
-                    print("loss: " + str(tr_loss / global_step))
+                    print("loss: " + str(tr_loss / global_step), end="\r")
                     sleep(0.1)
                     pbar.update()
                     #
@@ -300,8 +303,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
         acc_cnt[out_label_ids[j]] += 1
     acc_tot = np.divide(acc_list, acc_cnt)
     acc_tot[np.isnan(acc_tot)] = 0
-    print(count_list)
-    print(acc_tot)
+    # print(count_list)
+    # print(acc_tot)
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
     p1 = plt.bar(index, count_list,
