@@ -291,6 +291,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     # for i in range(len(df_from_train['Label'])):
     #     print(count_list[i], count_labels[i])
     #     count_list[int(df_from_train['Label'][i])] = count_labels[i]
+    print('out', len(out_label_ids))
+    print(len(list(out_label_ids)))
     for j in range(len(out_label_ids)):
         if out_label_ids[j] == preds[j]:
             acc_list[out_label_ids[j]] += 1
