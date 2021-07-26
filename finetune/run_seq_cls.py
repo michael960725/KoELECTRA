@@ -43,7 +43,7 @@ def train(args,
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_train.txt', sep='\t')
-    print(train_text)
+    print(train_text['Review'])
     if args.max_steps > 0:
         t_total = args.max_steps
         print()
@@ -276,7 +276,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     # full_dataset = [np.asarray(['1', '2', '3', '4', '5']), np.asarray(['0', '21', '8', '10', '5'])]
     df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
     df = pd.DataFrame(df_data)
-    df_train_data = {'Review': train_text[0], 'Label': train_text[1]}
+    df_train_data = {'Review': train_text['Review'], 'Label': train_text['Label']}
     df_from_train = pd.DataFrame(df_train_data)
     # Dodged Bar Chart (with same X coordinates side by side)
 
