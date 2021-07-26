@@ -287,7 +287,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     print(count_labels)
     viable_label = list(count_labels['Label'])
     for i in range(len(viable_label)):
-        count_list[viable_label[i]] = count_labels[i]
+        count_list[viable_label[i]] = count_labels['Review'][i]
     # for i in range(len(df_from_train['Label'])):
     #     print(count_list[i], count_labels[i])
     #     count_list[int(df_from_train['Label'][i])] = count_labels[i]
