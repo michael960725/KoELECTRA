@@ -48,8 +48,8 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_full.txt', sep='\t')
-    print(train_text['Review'])
+    full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_full.txt', sep='\t')
+    print(full_text['Review'])
     if args.max_steps > 0:
         t_total = args.max_steps
         print()
@@ -160,9 +160,9 @@ def train(args,
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                         if args.evaluate_test_during_training:
-                            evaluate(args, model, train_text, test_dataset, "test", global_step)
+                            evaluate(args, model, full_text, test_dataset, "test", global_step)
                         else:
-                            evaluate(args, model, train_text, dev_dataset, "dev", global_step)
+                            evaluate(args, model, full_text, dev_dataset, "dev", global_step)
 
                     if args.save_steps > 0 and global_step % args.save_steps == 0:
                         # Save model checkpoint
@@ -189,10 +189,10 @@ def train(args,
         if args.max_steps > 0 and global_step > args.max_steps:
             break
 
-    return global_step, tr_loss / global_step, train_text
+    return global_step, tr_loss / global_step, full_text
 
 
-def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
+def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
     results = {}
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -276,7 +276,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
         # print(review_list, label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
     df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
     df = pd.DataFrame(df_data)
-    df_train_data = {'Review': train_text['Review'], 'Label': train_text['Label']}
+
+    df_train_data = {'Review': full_text['Review'], 'Label': full_text['Label']}
     df_from_train = pd.DataFrame(df_train_data)
     # Dodged Bar Chart (with same X coordinates side by side)
 
@@ -285,7 +286,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     label_lst = list(label_dict.values())
     index = np.arange(len(label_lst))
     # print(index)
-    count_list, acc_list, acc_cnt = [0 for _ in range(len(label_dict))], \
+    count_list, cnt_pred, cnt_label = [0 for _ in range(len(label_dict))], \
                                     [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
     count_labels = df_from_train.groupby('Label', as_index=False).Review.count()
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
@@ -299,11 +300,11 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     #     count_list[int(df_from_train['Label'][i])] = count_labels[i]
     # print('out', len(out_label_ids))
     # print(len(list(out_label_ids)))
-    for j in range(len(out_label_ids)):
-        if out_label_ids[j] == np.argmax(preds, axis=1)[j]:
-            acc_list[out_label_ids[j]] += 100
-        acc_cnt[out_label_ids[j]] += 1
-    acc_tot = np.divide(acc_list, acc_cnt)
+    for validation in range(len(out_label_ids)):
+        if out_label_ids[validation] == np.argmax(preds, axis=1)[validation]:
+            cnt_pred[out_label_ids[validation]] += 100
+        cnt_label[out_label_ids[validation]] += 1
+    acc_tot = np.divide(cnt_pred, cnt_label)
     acc_tot[np.isnan(acc_tot)] = 0
     # print(count_list)
     # print(acc_tot)
@@ -365,7 +366,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
 
 
 def main(cli_args):
-    train_text = None
+    full_text = None
     # Read from config file and make args
     with open(os.path.join(cli_args.config_dir, cli_args.task, cli_args.config_file)) as f:
         args = AttrDict(json.load(f))
@@ -411,7 +412,7 @@ def main(cli_args):
         args.evaluate_test_during_training = True  # If there is no dev dataset, only use testset
 
     if args.do_train:
-        global_step, tr_loss, train_text = train(args, model, train_dataset, dev_dataset, test_dataset)
+        global_step, tr_loss, full_text = train(args, model, train_dataset, dev_dataset, test_dataset)
         logger.info(" global_step = {}, average loss = {}".format(global_step, tr_loss))
 
     results = {}
@@ -430,7 +431,7 @@ def main(cli_args):
             global_step = checkpoint.split("-")[-1]
             model = MODEL_FOR_SEQUENCE_CLASSIFICATION[args.model_type].from_pretrained(checkpoint)
             model.to(args.device)
-            result = evaluate(args, model, train_text, test_dataset, mode="test", global_step=global_step)
+            result = evaluate(args, model, full_text, test_dataset, mode="test", global_step=global_step)
             result = dict((k + "_{}".format(global_step), v) for k, v in result.items())
             results.update(result)
 
