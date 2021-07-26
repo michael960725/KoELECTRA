@@ -48,7 +48,7 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_train.txt', sep='\t')
+    train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_full.txt', sep='\t')
     print(train_text['Review'])
     if args.max_steps > 0:
         t_total = args.max_steps
