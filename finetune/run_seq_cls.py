@@ -285,7 +285,9 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
     print('hey', df_from_train['Label'][5])
     print(count_labels)
+
     for i in range(len(df_from_train['Label'])):
+        print(count_list[int(df_from_train['Label'][i])], count_labels[i])
         count_list[int(df_from_train['Label'][i])] = count_labels[i]
     for j in range(len(out_label_ids)):
         if out_label_ids[j] == preds[j]:
