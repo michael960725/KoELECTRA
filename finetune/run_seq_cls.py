@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import glob
+import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
@@ -40,6 +41,7 @@ def train(args,
           dev_dataset=None,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
+    print(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -151,9 +153,9 @@ def train(args,
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                         if args.evaluate_test_during_training:
-                            evaluate(args, model, test_dataset, "test", global_step)
+                            evaluate(args, model, train_dataset, test_dataset, "test", global_step)
                         else:
-                            evaluate(args, model, dev_dataset, "dev", global_step)
+                            evaluate(args, model, train_dataset, dev_dataset, "dev", global_step)
 
                     if args.save_steps > 0 and global_step % args.save_steps == 0:
                         # Save model checkpoint
@@ -183,7 +185,7 @@ def train(args,
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, model, eval_dataset, mode, global_step=None):
+def evaluate(args, model, train_dataset, eval_dataset, mode, global_step=None):
     results = {}
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -243,20 +245,62 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         do_lower_case=args.do_lower_case
     )
 
-    label_dict = {'None': -1, '상담원': 0, '상담시스템': 1, '고객서비스': 2, '혜택': 3, '할부금융상품': 4, '커뮤니티서비스': 5,
-                  '카드이용/결제': 6, '카드상품': 7, '청구입금': 8, '심사/한도': 9, '생활편의서비스': 10, '상담/채널': 11,
-                  '리스렌탈상품': 12, '라이프서비스': 13, '금융상품': 14, '고객정보관리': 15, '가맹점매출/승인': 16,
-                  '가맹점대금': 17, '가맹점계약': 18, '삼성카드': 19, '기타': 20}
+    label_dict = {'None': 0, '상담원': 1, '상담시스템': 2, '고객서비스': 3, '혜택': 4, '할부금융상품': 5,
+                  '커뮤니티서비스': 6, '카드이용/결제': 7, '카드상품': 8, '청구입금': 9, '심사/한도': 10,
+                  '생활편의서비스': 11, '상담/채널': 12, '리스렌탈상품': 13, '라이프서비스': 14, '금융상품': 15,
+                  '고객정보관리': 16, '가맹점매출/승인': 17, '가맹점대금': 18, '가맹점계약': 19, '삼성카드': 20, '기타': 21}
     label_dict = dict((v, k) for k, v in label_dict.items())
-
+    df_review = []
+    temp_review = []
+    df_label = np.vectorize(label_dict.get)(out_label_ids)
+    df_prediction = np.vectorize(label_dict.get(np.argmax(preds)))
     for i in range(len(out_input_ids)):
         review_list = list(out_input_ids[i])
+
+
+        temp_review.append(str(x) for x in out_input_ids[i])
+
+
         while 0 in review_list:
             review_list.remove(0)
         del review_list[0]
         del review_list[-1]
-        review_list = np.asarray(review_list)
-        print(tokenizer.decode(review_list), label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
+        df_review.append(tokenizer.decode(review_list))
+        # print(review_list, label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
+    df = pd.DataFrame([{'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}])
+
+    # Dodged Bar Chart (with same X coordinates side by side)
+
+    bar_width = 0.35
+    alpha = 0.5
+    label_lst = list(label_dict.keys())
+    index = np.arange(len(label_lst))
+    count_labels = df.groupby('Label').Review.count()
+    acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
+    print(count_labels, acc_labels)
+    plt.subplot(2, 1, 1)
+    plt.title('Dodged Bar Chart of Sum of Tips by Day & Sex', fontsize=20)
+    p1 = plt.bar(index, count_labels,
+                 bar_width,
+                 color='b',
+                 alpha=alpha,
+                 label='Male')
+    plt.ylabel('Sum of Tips', fontsize=18)
+    plt.xticks([], [])
+    plt.legend((p1[0],), ('Male',), fontsize=15)
+    plt.subplot(2, 1, 2)
+    p2 = plt.bar(index + bar_width, acc_labels,
+                 bar_width,
+                 color='r',
+                 alpha=alpha,
+                 label='Female')
+
+    plt.ylabel('Count of Tips', fontsize=18)
+    plt.xlabel('Day', fontsize=18)
+    plt.xticks(index, label, fontsize=15)
+    plt.legend((p1[0], p2[0]), ('Male', 'Female'), fontsize=15)
+    plt.show()
+    print(df)
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
@@ -355,7 +399,7 @@ def main(cli_args):
             global_step = checkpoint.split("-")[-1]
             model = MODEL_FOR_SEQUENCE_CLASSIFICATION[args.model_type].from_pretrained(checkpoint)
             model.to(args.device)
-            result = evaluate(args, model, test_dataset, mode="test", global_step=global_step)
+            result = evaluate(args, model, train_dataset, test_dataset, mode="test", global_step=global_step)
             result = dict((k + "_{}".format(global_step), v) for k, v in result.items())
             results.update(result)
 
