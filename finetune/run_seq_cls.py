@@ -310,9 +310,10 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     plt.figure(figsize=(15, 8))
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
+    clrs = ['r' if (x < 20) else 'b' for x in count_list]
     p1 = plt.bar(index, count_list,
                  bar_width,
-                 color='b',
+                 color=clrs,
                  alpha=alpha,
                  label='Count')
     plt.ylabel('Count of Labels', fontsize=12)
@@ -321,7 +322,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     plt.subplot(2, 1, 2)
     p2 = plt.bar(index + bar_width, acc_tot,
                  bar_width,
-                 color='b',
+                 color=clrs,
                  alpha=alpha,
                  label='Accuracy')
     plt.gca().yaxis.set_major_formatter(mticker.PercentFormatter())
