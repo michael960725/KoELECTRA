@@ -41,8 +41,9 @@ def train(args,
           dev_dataset=None,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
-    print(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+    train_text = pd.read_csv('\config\SCIC\SCIC_train.txt', sep='\t')
+    print(train_text)
     if args.max_steps > 0:
         t_total = args.max_steps
         print()
@@ -153,9 +154,9 @@ def train(args,
 
                     if args.logging_steps > 0 and global_step % args.logging_steps == 0:
                         if args.evaluate_test_during_training:
-                            evaluate(args, model, train_dataset, test_dataset, "test", global_step)
+                            evaluate(args, model, train_text, test_dataset, "test", global_step)
                         else:
-                            evaluate(args, model, train_dataset, dev_dataset, "dev", global_step)
+                            evaluate(args, model, train_text, dev_dataset, "dev", global_step)
 
                     if args.save_steps > 0 and global_step % args.save_steps == 0:
                         # Save model checkpoint
@@ -185,7 +186,7 @@ def train(args,
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, model, train_dataset, eval_dataset, mode, global_step=None):
+def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     results = {}
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -267,40 +268,51 @@ def evaluate(args, model, train_dataset, eval_dataset, mode, global_step=None):
         del review_list[-1]
         df_review.append(tokenizer.decode(review_list))
         # print(review_list, label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
-    df = pd.DataFrame([{'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}])
+    df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
+    df = pd.DataFrame(df_data)
 
+    # Dodged Bar Chart (with same X coordinates side by side)
+
+    full_dataset = [np.asarray(['1', '2', '3', '4', '5']), np.asarray(['0', '21', '8', '10', '5'])]
+    df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
+    df = pd.DataFrame(df_data)
+    df_train_data = {'Review': full_dataset[0], 'Label': full_dataset[1]}
+    df_from_train = pd.DataFrame(df_train_data)
     # Dodged Bar Chart (with same X coordinates side by side)
 
     bar_width = 0.35
     alpha = 0.5
-    label_lst = list(label_dict.keys())
+    label_lst = list(label_dict.values())
     index = np.arange(len(label_lst))
-    count_labels = df.groupby('Label').Review.count()
+    # print(index)
+    count_list, acc_list = [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
+    count_labels = df_from_train.groupby('Label').Review.count()
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
-    print(count_labels, acc_labels)
+    for i in range(len(df_from_train)):
+        count_list[int(df_from_train['Label'][i])] = count_labels[i]
+    print(count_list)
+    print(acc_labels)
     plt.subplot(2, 1, 1)
-    plt.title('Bar Chart of Labels Count and Accuracy', fontsize=20)
-    p1 = plt.bar(index, count_labels,
+    plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
+    p1 = plt.bar(index, count_list,
                  bar_width,
                  color='b',
                  alpha=alpha,
                  label='Count')
-    plt.ylabel('Count of Labels', fontsize=18)
+    plt.ylabel('Count of Labels', fontsize=12)
     plt.xticks([], [])
-    plt.legend((p1[0],), ('Count',), fontsize=15)
+    plt.legend((p1[0],), ('Count',), fontsize=10)
     plt.subplot(2, 1, 2)
-    p2 = plt.bar(index + bar_width, acc_labels,
+    p2 = plt.bar(index + bar_width, acc_list,
                  bar_width,
                  color='b',
                  alpha=alpha,
                  label='Accuracy')
-
-    plt.ylabel('Accuracy by Labels', fontsize=18)
-    plt.xlabel('Label', fontsize=18)
-    plt.xticks(index, label_lst, fontsize=15)
-    plt.legend((p2[0]), ('Accuracy',), fontsize=15)
+    plt.ylabel('Accuracy by Labels', fontsize=12)
+    plt.xlabel('Label', fontsize=12)
+    plt.xticks(index, label_lst, fontsize=10)
+    plt.legend((p2[0],), ('Accuracy',), fontsize=10)
     plt.show()
-    print(df)
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
@@ -399,7 +411,7 @@ def main(cli_args):
             global_step = checkpoint.split("-")[-1]
             model = MODEL_FOR_SEQUENCE_CLASSIFICATION[args.model_type].from_pretrained(checkpoint)
             model.to(args.device)
-            result = evaluate(args, model, train_dataset, test_dataset, mode="test", global_step=global_step)
+            result = evaluate(args, model, train_text, test_dataset, mode="test", global_step=global_step)
             result = dict((k + "_{}".format(global_step), v) for k, v in result.items())
             results.update(result)
 
