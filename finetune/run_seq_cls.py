@@ -4,6 +4,7 @@ import logging
 import os
 import glob
 import matplotlib.pyplot as plt
+plt.rc('font', family='NanumBarunGothic')
 
 import numpy as np
 import pandas as pd
@@ -283,16 +284,16 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                                     [0 for _ in range(len(label_dict))], [0 for _ in range(len(label_dict))]
     count_labels = df_from_train.groupby('Label', as_index=False).Review.count()
     acc_labels = df[df['Label'] == df['Prediction']].groupby('Label').Review.count()
-    print('hey', df_from_train['Label'][5])
-    print(count_labels)
+    # print('hey', df_from_train['Label'][5])
+    # print(count_labels)
     viable_label = list(count_labels['Label'])
     for i in range(len(viable_label)):
         count_list[viable_label[i]] = count_labels['Review'][i]
     # for i in range(len(df_from_train['Label'])):
     #     print(count_list[i], count_labels[i])
     #     count_list[int(df_from_train['Label'][i])] = count_labels[i]
-    print('out', len(out_label_ids))
-    print(len(list(out_label_ids)))
+    # print('out', len(out_label_ids))
+    # print(len(list(out_label_ids)))
     for j in range(len(out_label_ids)):
         if out_label_ids[j] == np.argmax(preds, axis=1)[j]:
             acc_list[out_label_ids[j]] += 1
