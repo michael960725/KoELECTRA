@@ -294,7 +294,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     print('out', len(out_label_ids))
     print(len(list(out_label_ids)))
     for j in range(len(out_label_ids)):
-        if out_label_ids[j] == preds[j]:
+        if out_label_ids[j] == np.argmax(preds, axis=1)[j]:
             acc_list[out_label_ids[j]] += 1
         acc_cnt[out_label_ids[j]] += 1
     acc_tot = np.divide(acc_list, acc_cnt)
