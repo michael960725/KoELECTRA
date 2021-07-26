@@ -327,8 +327,8 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                  label='Accuracy')
     plt.gca().yaxis.set_major_formatter(mticker.PercentFormatter())
     plt.ylabel('Accuracy by Labels', fontsize=12)
-    plt.xlabel('Label', fontsize=12, rotation=45)
-    plt.xticks(index, label_lst, fontsize=10)
+    plt.xlabel('Label', fontsize=12)
+    plt.xticks(index, label_lst, fontsize=10, rotation=45)
     plt.legend((p2[0],), ('Accuracy',), fontsize=10)
     plt.show()
         # for i in range(len(out_label_ids)):
