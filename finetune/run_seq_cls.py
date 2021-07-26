@@ -42,7 +42,7 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    train_text = pd.read_csv('\config\SCIC\SCIC_train.txt', sep='\t')
+    train_text = pd.read_csv('~\data\SCIC\SCIC_train.txt', sep='\t')
     print(train_text)
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -183,7 +183,7 @@ def train(args,
         if args.max_steps > 0 and global_step > args.max_steps:
             break
 
-    return global_step, tr_loss / global_step
+    return global_step, tr_loss / global_step, train_text
 
 
 def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
@@ -252,14 +252,14 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                   '고객정보관리': 16, '가맹점매출/승인': 17, '가맹점대금': 18, '가맹점계약': 19, '삼성카드': 20, '기타': 21}
     label_dict = dict((v, k) for k, v in label_dict.items())
     df_review = []
-    temp_review = []
+    # temp_review = []
     df_label = np.vectorize(label_dict.get)(out_label_ids)
     df_prediction = np.vectorize(label_dict.get(np.argmax(preds)))
     for i in range(len(out_input_ids)):
         review_list = list(out_input_ids[i])
 
 
-        temp_review.append(str(x) for x in out_input_ids[i])
+        # temp_review.append(str(x) for x in out_input_ids[i])
 
 
         while 0 in review_list:
@@ -273,10 +273,10 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
 
     # Dodged Bar Chart (with same X coordinates side by side)
 
-    full_dataset = [np.asarray(['1', '2', '3', '4', '5']), np.asarray(['0', '21', '8', '10', '5'])]
+    # full_dataset = [np.asarray(['1', '2', '3', '4', '5']), np.asarray(['0', '21', '8', '10', '5'])]
     df_data = {'Review': df_review, 'Label': df_label, 'Prediction': df_prediction}
     df = pd.DataFrame(df_data)
-    df_train_data = {'Review': full_dataset[0], 'Label': full_dataset[1]}
+    df_train_data = {'Review': train_text[0], 'Label': train_text[1]}
     df_from_train = pd.DataFrame(df_train_data)
     # Dodged Bar Chart (with same X coordinates side by side)
 
@@ -347,6 +347,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
 
 
 def main(cli_args):
+    train_text = None
     # Read from config file and make args
     with open(os.path.join(cli_args.config_dir, cli_args.task, cli_args.config_file)) as f:
         args = AttrDict(json.load(f))
@@ -392,7 +393,7 @@ def main(cli_args):
         args.evaluate_test_during_training = True  # If there is no dev dataset, only use testset
 
     if args.do_train:
-        global_step, tr_loss = train(args, model, train_dataset, dev_dataset, test_dataset)
+        global_step, tr_loss, train_text = train(args, model, train_dataset, dev_dataset, test_dataset)
         logger.info(" global_step = {}, average loss = {}".format(global_step, tr_loss))
 
     results = {}
