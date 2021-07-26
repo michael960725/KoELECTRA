@@ -49,7 +49,8 @@ def train(args,
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs * 2
-        print('max steps: '+ str(t_total), 'length of train data: '+str(len(train_dataloader)), args.gradient_accumulation_steps)
+        print('max steps: ' + str(t_total), 'length of train data: ' + str(len(train_dataloader)),
+              args.gradient_accumulation_steps)
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
@@ -58,7 +59,8 @@ def train(args,
         {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
     ]
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(t_total * args.warmup_proportion), num_training_steps=t_total)
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(t_total * args.warmup_proportion),
+                                                num_training_steps=t_total)
 
     if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
             os.path.join(args.model_name_or_path, "scheduler.pt")
@@ -88,8 +90,8 @@ def train(args,
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
 
         # 내가 수정한 부분
-        with tqdm(total=t_total/args.num_train_epochs / 2) as pbar:
-        #
+        with tqdm(total=t_total / args.num_train_epochs / 2) as pbar:
+            #
             for step, batch in enumerate(epoch_iterator):
                 #
                 # print(len(batch))
@@ -210,14 +212,13 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
                 "labels": batch[3]
             }
 
-            #내가 쓴 곳
+            # 내가 쓴 곳
             # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
             #     args.model_name_or_path,
             #     do_lower_case=args.do_lower_case
             # )
             # for i in range(len(inputs)):
             #     print(tokenizer.decode(inputs['input_ids'][i]), inputs['labels'])
-
 
             if args.model_type not in ["distilkobert", "xlm-roberta"]:
                 inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
@@ -242,6 +243,12 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         do_lower_case=args.do_lower_case
     )
 
+    label_dict = {'None': -1, '상담원': 0, '상담시스템': 1, '고객서비스': 2, '혜택': 3, '할부금융상품': 4, '커뮤니티서비스': 5,
+                  '카드이용/결제': 6, '카드상품': 7, '청구입금': 8, '심사/한도': 9, '생활편의서비스': 10, '상담/채널': 11,
+                  '리스렌탈상품': 12, '라이프서비스': 13, '금융상품': 14, '고객정보관리': 15, '가맹점매출/승인': 16,
+                  '가맹점대금': 17, '가맹점계약': 18, '삼성카드': 19, '기타': 20}
+    label_dict = dict((v, k) for k, v in label_dict.items())
+
     for i in range(len(out_input_ids)):
         review_list = list(out_input_ids[i])
         while 0 in review_list:
@@ -249,7 +256,7 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         del review_list[0]
         del review_list[-1]
         review_list = np.asarray(review_list)
-        print(tokenizer.decode(review_list), out_label_ids[i], np.argmax(preds[i]))
+        print(tokenizer.decode(review_list), label_dict[out_label_ids[i] - 1], label_dict[np.argmax(preds[i]) - 1])
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
         # print(type(out_label_ids), type(preds))
@@ -263,11 +270,8 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
 
-
     # numpy_data = np.array(out_label_ids, preds)
     # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
-
-
 
     results.update(result)
 
@@ -275,7 +279,8 @@ def evaluate(args, model, eval_dataset, mode, global_step=None):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    output_eval_file = os.path.join(output_dir, "{}-{}.txt".format(mode, global_step) if global_step else "{}.txt".format(mode))
+    output_eval_file = os.path.join(output_dir,
+                                    "{}-{}.txt".format(mode, global_step) if global_step else "{}.txt".format(mode))
     with open(output_eval_file, "w") as f_w:
         logger.info("***** Eval results on {} dataset *****".format(mode))
         for key in sorted(results.keys()):
@@ -337,7 +342,8 @@ def main(cli_args):
     results = {}
     if args.do_eval:
         checkpoints = list(
-            os.path.dirname(c) for c in sorted(glob.glob(args.output_dir + "/**/" + "pytorch_model.bin", recursive=True))
+            os.path.dirname(c) for c in
+            sorted(glob.glob(args.output_dir + "/**/" + "pytorch_model.bin", recursive=True))
         )
         if not args.eval_all_checkpoints:
             checkpoints = checkpoints[-1:]
