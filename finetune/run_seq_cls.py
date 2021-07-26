@@ -43,7 +43,7 @@ def train(args,
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     train_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_train.txt', sep='\t')
-    print(train_text)
+    print(train_text[0])
     if args.max_steps > 0:
         t_total = args.max_steps
         print()
@@ -295,8 +295,10 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
         if out_label_ids[j] == preds[j]:
             acc_list[out_label_ids[j]] += 1
         acc_cnt[out_label_ids[j]] += 1
+    acc_tot = np.divide(acc_list, acc_cnt)
+    acc_tot[np.isnan(acc_tot)] = 0
     print(count_list)
-    print(acc_list)
+    print(acc_tot)
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
     p1 = plt.bar(index, count_list,
@@ -308,7 +310,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     plt.xticks([], [])
     plt.legend((p1[0],), ('Count',), fontsize=10)
     plt.subplot(2, 1, 2)
-    p2 = plt.bar(index + bar_width, acc_list,
+    p2 = plt.bar(index + bar_width, acc_tot,
                  bar_width,
                  color='b',
                  alpha=alpha,
