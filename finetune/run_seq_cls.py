@@ -4,10 +4,13 @@ import logging
 import os
 import glob
 import matplotlib.pyplot as plt
-import matplotlib
 
-matplotlib.rcParams['axes.unicode_minus'] = False
-matplotlib.rcParams['font.family'] = "AppleGothic"
+plt.rc('font', family='NanumGothic') # For Windows
+plt.rc('axes', unicode_minus=False)
+
+plt.plot([1, 2, 3, 4])
+plt.ylabel('제발좀')
+plt.show()
 
 import numpy as np
 import pandas as pd
