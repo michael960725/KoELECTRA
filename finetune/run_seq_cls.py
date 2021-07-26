@@ -310,7 +310,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     plt.figure(figsize=(15, 8))
     plt.subplot(2, 1, 1)
     plt.title('Bar Chart of Labels Count and Accuracy', fontsize=15)
-    clrs = ['r' if (x < 20) else 'b' for x in count_list]
+    clrs = ['r' if (x < 15) else 'b' for x in count_list]
     p1 = plt.bar(index, count_list,
                  bar_width,
                  color=clrs,
@@ -318,7 +318,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
                  label='Count')
     plt.ylabel('Count of Labels', fontsize=12)
     plt.xticks([], [])
-    plt.legend((p1[0],), ('Count',), fontsize=10)
+    # plt.legend((p1[0],), ('Count',), fontsize=10)
     plt.subplot(2, 1, 2)
     p2 = plt.bar(index + bar_width, acc_tot,
                  bar_width,
@@ -329,7 +329,7 @@ def evaluate(args, model, train_text, eval_dataset, mode, global_step=None):
     plt.ylabel('Accuracy by Labels', fontsize=12)
     plt.xlabel('Label', fontsize=12)
     plt.xticks(index, label_lst, fontsize=10, rotation=45)
-    plt.legend((p2[0],), ('Accuracy',), fontsize=10)
+    # plt.legend((p2[0],), ('Accuracy',), fontsize=10)
     plt.show()
         # for i in range(len(out_label_ids)):
         #     print(tokenizer.decode(out_ids[i]), out_label_ids[i], preds[i])
