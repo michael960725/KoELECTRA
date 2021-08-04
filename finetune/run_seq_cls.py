@@ -449,5 +449,4 @@ if __name__ == '__main__':
     cli_parser.add_argument("--config_file", type=str, required=True)
 
     cli_args = cli_parser.parse_args()
-
     main(cli_args)

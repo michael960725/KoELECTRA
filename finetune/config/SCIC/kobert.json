@@ -1,10 +1,10 @@
 {
-  "task": "nsmc",
+  "task": "SCIC",
   "data_dir": "data",
   "ckpt_dir": "ckpt",
-  "train_file": "ratings_train.txt",
+  "train_file": "SCIC_train.txt",
   "dev_file": "",
-  "test_file": "ratings_test.txt",
+  "test_file": "SCIC_test.txt",
   "evaluate_test_during_training": true,
   "eval_all_checkpoints": true,
   "save_optimizer": false,
@@ -25,8 +25,8 @@
   "output_dir": "kobert-nsmc-ckpt",
   "seed": 42,
   "train_batch_size": 32,
-  "eval_batch_size": 128,
-  "logging_steps": 2000,
-  "save_steps": 2000,
+  "eval_batch_size": 32,
+  "logging_steps": 100,
+  "save_steps": 100,
   "learning_rate": 5e-5
 }
