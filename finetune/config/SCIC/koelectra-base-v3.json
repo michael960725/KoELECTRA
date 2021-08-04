@@ -12,7 +12,7 @@
   "do_train": true,
   "do_eval": true,
   "max_seq_len": 128,
-  "num_train_epochs": 40,
+  "num_train_epochs": 10,
   "weight_decay": 0.0,
   "gradient_accumulation_steps": 1,
   "adam_epsilon": 1e-8,
