@@ -48,7 +48,7 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/train_n.txt', sep='\t')
+    full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/train_n_full.txt', sep='\t')
     # full_text = pd.read_csv('train_n.txt', sep='\t')
     print(full_text)
     if args.max_steps > 0:
