@@ -107,126 +107,126 @@ def train(args,
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
 
         # 내가 수정한 부분
-        with tqdm(total=t_total / args.num_train_epochs / 2) as pbar:
+        # with tqdm(total=t_total / args.num_train_epochs ) as pbar:
             #
-            for step, batch in enumerate(epoch_iterator):
+        for step, batch in enumerate(epoch_iterator):
+            #
+            # print(len(batch))
+            model.train()
+            batch = tuple(t.to(args.device) for t in batch)
+            inputs = {
+                "input_ids": batch[0],
+                "attention_mask": batch[1],
+                "labels": batch[3]
+            }
+
+
+
+            # 데이터 길이 분석
+            # logits = batch[0]
+            # temp = logits.detach().cpu().numpy()
+            # for i in range(len(temp)):
+            #     # print(i)
+            #     review_list = list(temp[i])
+            #     while 0 in review_list:
+            #         review_list.remove(0)
+            #     if len(review_list) < 256:
+            #         len_256 += 1
+            #     if len(review_list) < 128:
+            #         len_128 += 1
+            #     if len(review_list) < 64:
+            #         len_64 += 1
+            #     if len(review_list) < 32:
+            #         len_32 += 1
+            #     if len(review_list) < 16:
+            #         len_16 += 1
+            #     if len(review_list) < 8:
+            #         len_8 += 1
+            #     if len(review_list) < 512:
+            #         len_512 += 1
+            # print('len_8: ' + str(len_8))
+            # print('len_16: ' + str(len_16))
+            # print('len_32: ' + str(len_32))
+            # print('len_64: ' + str(len_64))
+            # print('len_128: ' + str(len_128))
+            # print('len_256: ' + str(len_256))
+            # print('len_512: ' + str(len_512))
+
+
+
+
+            if args.model_type not in ["distilkobert", "xlm-roberta"]:
+                inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
+            outputs = model(**inputs)
+            loss = outputs[0]
+
+            if args.gradient_accumulation_steps > 1:
+                loss = loss / args.gradient_accumulation_steps
+
+            loss.backward()
+            tr_loss += loss.item()
+
+            # 내가 추가한 부분
+            # logits = batch[0]
+            # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
+            #     args.model_name_or_path,
+            #     do_lower_case=args.do_lower_case
+            # )
+            #
+            # temp = logits.detach().cpu().numpy()
+            # for i in range(len(temp)):
+            #     # print(i)
+            #     review_list = list(temp[i])
+            #     while 0 in review_list:
+            #         review_list.remove(0)
+            #     del review_list[0]
+            #     del review_list[-1]
+            #     review_list = np.asarray(review_list)
+            #     print(tokenizer.decode(review_list), batch[3][i])
+            ##
+
+            if (step + 1) % args.gradient_accumulation_steps == 0 or (
+                    len(train_dataloader) <= args.gradient_accumulation_steps
+                    and (step + 1) == len(train_dataloader)
+            ):
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+
+                optimizer.step()
+                scheduler.step()
+                model.zero_grad()
+                global_step += 1
+
+                # 내가 수정한 부분
+                print("loss: " + str(tr_loss / global_step), end="\r")
+                # sleep(0.1)
+                # pbar.update()
                 #
-                # print(len(batch))
-                model.train()
-                batch = tuple(t.to(args.device) for t in batch)
-                inputs = {
-                    "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3]
-                }
 
+                if args.logging_steps > 0 and global_step % args.logging_steps == 0:
+                    if args.evaluate_test_during_training:
+                        evaluate(args, model, full_text, test_dataset, "test", global_step)
+                    else:
+                        evaluate(args, model, full_text, dev_dataset, "dev", global_step)
 
+                if args.save_steps > 0 and global_step % args.save_steps == 0:
+                    # Save model checkpoint
+                    output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
+                    if not os.path.exists(output_dir):
+                        os.makedirs(output_dir)
+                    model_to_save = (
+                        model.module if hasattr(model, "module") else model
+                    )
+                    model_to_save.save_pretrained(output_dir)
 
-                # 데이터 길이 분석
-                # logits = batch[0]
-                # temp = logits.detach().cpu().numpy()
-                # for i in range(len(temp)):
-                #     # print(i)
-                #     review_list = list(temp[i])
-                #     while 0 in review_list:
-                #         review_list.remove(0)
-                #     if len(review_list) < 256:
-                #         len_256 += 1
-                #     if len(review_list) < 128:
-                #         len_128 += 1
-                #     if len(review_list) < 64:
-                #         len_64 += 1
-                #     if len(review_list) < 32:
-                #         len_32 += 1
-                #     if len(review_list) < 16:
-                #         len_16 += 1
-                #     if len(review_list) < 8:
-                #         len_8 += 1
-                #     if len(review_list) < 512:
-                #         len_512 += 1
-                # print('len_8: ' + str(len_8))
-                # print('len_16: ' + str(len_16))
-                # print('len_32: ' + str(len_32))
-                # print('len_64: ' + str(len_64))
-                # print('len_128: ' + str(len_128))
-                # print('len_256: ' + str(len_256))
-                # print('len_512: ' + str(len_512))
+                    torch.save(args, os.path.join(output_dir, "training_args.bin"))
+                    logger.info("Saving model checkpoint to {}".format(output_dir))
 
-
-
-
-                if args.model_type not in ["distilkobert", "xlm-roberta"]:
-                    inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
-                outputs = model(**inputs)
-                loss = outputs[0]
-
-                if args.gradient_accumulation_steps > 1:
-                    loss = loss / args.gradient_accumulation_steps
-
-                loss.backward()
-                tr_loss += loss.item()
-
-                # 내가 추가한 부분
-                # logits = batch[0]
-                # tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
-                #     args.model_name_or_path,
-                #     do_lower_case=args.do_lower_case
-                # )
-                #
-                # temp = logits.detach().cpu().numpy()
-                # for i in range(len(temp)):
-                #     # print(i)
-                #     review_list = list(temp[i])
-                #     while 0 in review_list:
-                #         review_list.remove(0)
-                #     del review_list[0]
-                #     del review_list[-1]
-                #     review_list = np.asarray(review_list)
-                #     print(tokenizer.decode(review_list), batch[3][i])
-                ##
-
-                if (step + 1) % args.gradient_accumulation_steps == 0 or (
-                        len(train_dataloader) <= args.gradient_accumulation_steps
-                        and (step + 1) == len(train_dataloader)
-                ):
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
-
-                    optimizer.step()
-                    scheduler.step()
-                    model.zero_grad()
-                    global_step += 1
-
-                    # 내가 수정한 부분
-                    print("loss: " + str(tr_loss / global_step), end="\r")
-                    sleep(0.1)
-                    pbar.update()
-                    #
-
-                    if args.logging_steps > 0 and global_step % args.logging_steps == 0:
-                        if args.evaluate_test_during_training:
-                            evaluate(args, model, full_text, test_dataset, "test", global_step)
-                        else:
-                            evaluate(args, model, full_text, dev_dataset, "dev", global_step)
-
-                    if args.save_steps > 0 and global_step % args.save_steps == 0:
-                        # Save model checkpoint
-                        output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
-                        if not os.path.exists(output_dir):
-                            os.makedirs(output_dir)
-                        model_to_save = (
-                            model.module if hasattr(model, "module") else model
-                        )
-                        model_to_save.save_pretrained(output_dir)
-
-                        torch.save(args, os.path.join(output_dir, "training_args.bin"))
-                        logger.info("Saving model checkpoint to {}".format(output_dir))
-
-                        if args.save_optimizer:
-                            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
-                            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-                            logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
-                if args.max_steps > 0 and global_step > args.max_steps:
-                    break
+                    if args.save_optimizer:
+                        torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+                        torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+                        logger.info("Saving optimizer and scheduler states to {}".format(output_dir))
+            if args.max_steps > 0 and global_step > args.max_steps:
+                break
 
         mb.write("Epoch {} done".format(epoch + 1))
 
