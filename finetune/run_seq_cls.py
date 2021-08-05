@@ -48,8 +48,9 @@ def train(args,
           test_dataset=None):
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-    full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/SCIC_full.txt', sep='\t')
-    print(full_text['Review'])
+    full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/train_n.txt', sep='\t')
+    # full_text = pd.read_csv('train_n.txt', sep='\t')
+    print(full_text)
     if args.max_steps > 0:
         t_total = args.max_steps
         print()
@@ -95,6 +96,13 @@ def train(args,
     mb = master_bar(range(int(args.num_train_epochs)))
     # for epoch in tqdm(range(int(args.num_train_epochs))):
     #     sleep(0.1)
+    # len_8 = 0
+    # len_16 = 0
+    # len_32 = 0
+    # len_64 = 0
+    # len_128 = 0
+    # len_256 = 0
+    # len_512 = 0
     for epoch in tqdm(mb):
         epoch_iterator = progress_bar(train_dataloader, parent=mb)
 
@@ -111,6 +119,42 @@ def train(args,
                     "attention_mask": batch[1],
                     "labels": batch[3]
                 }
+
+
+
+                # 데이터 길이 분석
+                # logits = batch[0]
+                # temp = logits.detach().cpu().numpy()
+                # for i in range(len(temp)):
+                #     # print(i)
+                #     review_list = list(temp[i])
+                #     while 0 in review_list:
+                #         review_list.remove(0)
+                #     if len(review_list) < 256:
+                #         len_256 += 1
+                #     if len(review_list) < 128:
+                #         len_128 += 1
+                #     if len(review_list) < 64:
+                #         len_64 += 1
+                #     if len(review_list) < 32:
+                #         len_32 += 1
+                #     if len(review_list) < 16:
+                #         len_16 += 1
+                #     if len(review_list) < 8:
+                #         len_8 += 1
+                #     if len(review_list) < 512:
+                #         len_512 += 1
+                # print('len_8: ' + str(len_8))
+                # print('len_16: ' + str(len_16))
+                # print('len_32: ' + str(len_32))
+                # print('len_64: ' + str(len_64))
+                # print('len_128: ' + str(len_128))
+                # print('len_256: ' + str(len_256))
+                # print('len_512: ' + str(len_512))
+
+
+
+
                 if args.model_type not in ["distilkobert", "xlm-roberta"]:
                     inputs["token_type_ids"] = batch[2]  # Distilkobert, XLM-Roberta don't use segment_ids
                 outputs = model(**inputs)
