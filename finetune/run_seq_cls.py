@@ -58,7 +58,7 @@ def train(args,
         print()
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
-        t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs * 4
+        t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
         print('max steps: ' + str(t_total), 'length of train data: ' + str(len(train_dataloader)),
               args.gradient_accumulation_steps)
     # Prepare optimizer and schedule (linear warmup and decay)
