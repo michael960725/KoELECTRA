@@ -348,6 +348,9 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
         if out_label_ids[validation] == np.argmax(preds, axis=1)[validation]:
             cnt_pred[out_label_ids[validation]] += 100
         cnt_label[out_label_ids[validation]] += 1
+    for i in range(len(cnt_label)):
+        if cnt_label[i] == 0:
+            cnt_label[i] = 1
     acc_tot = np.divide(cnt_pred, cnt_label)
     acc_tot[np.isnan(acc_tot)] = 0
     # print(count_list)
@@ -393,13 +396,14 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
     # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
 
     results.update(result)
-
+    print('yes1')
     output_dir = os.path.join(args.output_dir, mode)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+    print('yes2')
     output_eval_file = os.path.join(output_dir,
                                     "{}-{}.txt".format(mode, global_step) if global_step else "{}.txt".format(mode))
+    print('yes3')
     with open(output_eval_file, "w") as f_w:
         logger.info("***** Eval results on {} dataset *****".format(mode))
         for key in sorted(results.keys()):
