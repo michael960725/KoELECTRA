@@ -49,7 +49,7 @@ def train(args,
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
     full_text = pd.read_csv('/content/KoELECTRA/finetune/data/SCIC/train_n_full.txt', sep='\t')
-    # full_text = pd.read_csv('train_n.txt', sep='\t')
+    # full_text = pd.read_csv('train_n_full.txt', sep='\t')
     print(full_text)
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -295,7 +295,7 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
         args.model_name_or_path,
         do_lower_case=args.do_lower_case
     )
-
+    # label_dict = {'칭찬': 0, '중립': 0.5, '불만': 1}
     label_dict = {'None': 0, '상담원': 1, '상담시스템': 2, '고객서비스': 3, '혜택': 4, '할부금융상품': 5,
                   '커뮤니티서비스': 6, '카드이용/결제': 7, '카드상품': 8, '청구입금': 9, '심사/한도': 10,
                   '생활편의서비스': 11, '상담/채널': 12, '리스렌탈상품': 13, '라이프서비스': 14, '금융상품': 15,
