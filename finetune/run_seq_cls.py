@@ -296,10 +296,14 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
         do_lower_case=args.do_lower_case
     )
     # label_dict = {'칭찬': 0, '중립': 0.5, '불만': 1}
+    '''
     label_dict = {'None': 0, '상담원': 1, '상담시스템': 2, '고객서비스': 3, '혜택': 4, '할부금융상품': 5,
                   '커뮤니티서비스': 6, '카드이용/결제': 7, '카드상품': 8, '청구입금': 9, '심사/한도': 10,
                   '생활편의서비스': 11, '상담/채널': 12, '리스렌탈상품': 13, '라이프서비스': 14, '금융상품': 15,
                   '고객정보관리': 16, '가맹점매출/승인': 17, '가맹점대금': 18, '가맹점계약': 19, '삼성카드': 20, '기타': 21}
+    '''
+    label_dict = {'칭찬': 0, '불만': 1}
+
     label_dict = dict((v, k) for k, v in label_dict.items())
     df_review = []
     # temp_review = []
