@@ -63,6 +63,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
     logger.info("Using output mode {} for task {}".format(output_mode, task))
 
     label_map = {label: i for i, label in enumerate(label_list)}
+    print('나는 시발 뭐지')
     print(label_map)
 
     def label_from_example(example):
