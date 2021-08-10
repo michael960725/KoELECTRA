@@ -410,7 +410,7 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
 
-    reverse_label_dict = dict((v, k) for (k, v) in label_dict)
+    reverse_label_dict = dict((v, k) for (k, v) in label_dict.items())
 
     # 수정한 부분
     check_right = out_label_ids == preds
