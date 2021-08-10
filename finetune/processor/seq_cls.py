@@ -63,7 +63,7 @@ def seq_cls_convert_examples_to_features(args, examples, tokenizer, max_length, 
     logger.info("Using output mode {} for task {}".format(output_mode, task))
 
     label_map = {label: i for i, label in enumerate(label_list)}
-
+    print(label_map)
 
     def label_from_example(example):
         if output_mode == "classification":
@@ -117,6 +117,7 @@ class SCICProcessor(object):
                 '카드상품': 5, '청구입금': 6, '심사/한도': 7, '생활편의서비스': 8,
                 '상담/채널': 9, '리스렌탈상품': 10, '라이프서비스': 11, '금융상품': 12,
                 '고객정보관리': 13, '가맹점매출/승인': 14, '삼성카드': 15, '기타': 16}
+
 
         return list(new_dict.values())
 
