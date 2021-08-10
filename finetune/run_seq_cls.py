@@ -291,6 +291,19 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
 
         # 내가 수정한 부분
 
+
+            #     review_list = list(temp[i])
+            #     while 0 in review_list:
+            #         review_list.remove(0)
+            #     del review_list[0]
+            #     del review_list[-1]
+            #     review_list = np.asarray(review_list)
+            #     print(tokenizer.decode(review_list), batch[3][i])
+
+
+
+
+
     tokenizer = TOKENIZER_CLASSES[args.model_type].from_pretrained(
         args.model_name_or_path,
         do_lower_case=args.do_lower_case
@@ -300,6 +313,8 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
                 '카드상품': 5, '청구입금': 6, '심사/한도': 7, '생활편의서비스': 8,
                 '상담/채널': 9, '리스렌탈상품': 10, '라이프서비스': 11, '금융상품': 12,
                 '고객정보관리': 13, '가맹점매출/승인': 14, '삼성카드': 15, '기타': 16}
+
+
 
     # label_dict = {'칭찬': 0, '불만': 1}
 
@@ -395,8 +410,20 @@ def evaluate(args, model, full_text, eval_dataset, mode, global_step=None):
         preds = np.squeeze(preds)
     result = compute_metrics(args.task, out_label_ids, preds)
 
-    # numpy_data = np.array(out_label_ids, preds)
-    # df = pd.DataFrame(data=numpy_data, index=["row1", "row2"], columns=["column1", "column2"])
+    reverse_label_dict = dict((v, k) for (k, v) in label_dict)
+
+    # 수정한 부분
+    check_right = out_label_ids == preds
+    for result in range(len(check_right)):
+        if not check_right[result]:
+            review_list = out_input_ids[result].detach().cpu.numpy()
+            while 0 in review_list:
+                review_list.remove(0)
+            del review_list[0]
+            del review_list[-1]
+            print(review_list, 'Label: ' + str(reverse_label_dict[out_label_ids[result]]) + 'Prediction: ' + str(
+                reverse_label_dict[preds[result]]))
+    #
 
     results.update(result)
     print('yes1')
